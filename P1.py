@@ -13,6 +13,7 @@ class StartScreen(GridLayout):
 
     def __init__(self,**kwargs):
         super(StartScreen,self).__init__(**kwargs)
+        
         self.cols = 3
         self.add_widget(Label(text='',font_size='20sp'))
         self.add_widget(Label(text='X-Value',font_size='20sp'))
