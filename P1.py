@@ -1,8 +1,5 @@
-
 import numpy as np
-
-import plotly.graph_objects as go
-import plotly.figure_factory as ff
+import matplotlib.pyplot as plt
 
 from kivy.app import App
 from kivy.uix.button import Button
@@ -53,34 +50,34 @@ class StartScreen(GridLayout):
         self.add_widget(Label(text=''))
     
     def CalculateDrawing(self,instance):
-        x,y = np.meshgrid(np.arange(-7, 7, .25), np.arange(-7, 7, .25))
+        x,y = np.meshgrid(np.arange(-7, 7.25,0.25), np.arange(-7, 7.25,0.25))
 
-        z = x*np.array(x**2)
-        v, u = np.array(z)
+        u = x
+        v = y
+
         self.QuiverPlot(x, y, u, v)
 
     def QuiverPlot(self,x, y, u, v):
         # Create quiver figure
-        fig = ff.create_quiver(x, y, u, v,
-                            scale=.5,
-                            arrow_scale=1,
-                            name='quiver',
-                            line_width=1)
+        x_pos = np.arange(start=0,stop=3,step=1)
+        y_pos = np.arange(start=0,stop=3,step=1)
+        x_direct = [1,1,1]
+        y_direct = [1,1,1]
 
-        # Add points to figure
-        fig.add_trace(go.Scatter(x=[float(self.LM1_X.text),float(self.LM2_X.text),float(self.LM3_X.text)],
-                            y=[float(self.LM1_Y.text),float(self.LM2_Y.text),float(self.LM3_Y.text)],
-                            mode='markers',
-                            marker_size=30,
-                            name='Landmarks'))
+        fig, ax = plt.subplots()
+        ax.axis([-7, 7, -7, 7])
+        
+        ax.quiver(x_pos,y_pos,x_direct,x_direct,scale=1)
 
-        fig.add_trace(go.Scatter(x=[float(self.TP_X.text)],y=[float(self.TP_X.text)],
-                            mode='markers',
-                            marker_size=10,
-                            name='Target Point',
-                             ))
-        fig.show()
-        exit
+        LMX=np.array([float(self.LM1_X.text), float(self.LM2_X.text) ,float(self.LM3_X.text)])
+        LMY=np.array([float(self.LM1_Y.text),float(self.LM2_Y.text),float(self.LM3_Y.text)])
+
+        ax.scatter(float(self.TP_X.text),float(self.TP_Y.text),color='r') #Honeypot
+        ax.scatter(LMX,LMY,color='g') #Landmarks
+
+        ax.set_title('Honey Way')
+        plt.show()
+        exit()
 
 class TestApp(App):
     def build(self):
