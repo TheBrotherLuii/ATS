@@ -59,15 +59,13 @@ class StartScreen(GridLayout):
 
     def QuiverPlot(self,x, y, u, v):
         # Create quiver figure
-        x_pos = np.arange(start=0,stop=3,step=1)
-        y_pos = np.arange(start=0,stop=3,step=1)
         x_direct = [1,1,1]
         y_direct = [1,1,1]
 
         fig, ax = plt.subplots()
         ax.axis([-7, 7, -7, 7])
         
-        ax.quiver(x_pos,y_pos,x_direct,x_direct,scale=1)
+        ax.quiver(X[::3, ::3], Y[::3, ::3],x_direct,angles='xy', scale_units='xy', scale=1)
 
         LMX=np.array([float(self.LM1_X.text), float(self.LM2_X.text) ,float(self.LM3_X.text)])
         LMY=np.array([float(self.LM1_Y.text),float(self.LM2_Y.text),float(self.LM3_Y.text)])
