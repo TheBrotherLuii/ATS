@@ -80,8 +80,8 @@ class StartScreen(GridLayout):
         angle2 = Xline.smallest_angle_between(ln2)
         anglesice = ln1.smallest_angle_between(ln2)
         LMAngle = [anglesice, angle1, angle2]
-        
-        return LMAngels
+
+        return LMAngel
 
     def QuiverPlot(self,u,v):
         # Create quiver figure
