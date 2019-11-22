@@ -59,29 +59,40 @@ class StartScreen(GridLayout):
         LM1P = Point(float(self.LM1_X.text),float(self.LM1_Y.text))
         LM2P = Point(float(self.LM2_X.text),float(self.LM2_Y.text))
         LM3P = Point(float(self.LM3_X.text),float(self.LM3_Y.text))
-        InLM1 = self.InterPointCalc(TPP,LM1P)   
-        InLM2 = self.InterPointCalc(TPP,LM2P)  
-        InLM3 = self.InterPointCalc(TPP,LM3P)  
 
-        Ang1 = self.AngluarSice(TPP,InLM1)
+        TPAngLM1 = self.AngleCalc(TPP,LM1P)
+        TPAngLM2 = self.AngleCalc(TPP,LM2P)
+        TPAngLM3 = self.AngleCalc(TPP,LM3P)
 
         u, v = np.meshgrid(np.arange(-7, 8, 1), np.arange(-7, 8, 1))
         self.QuiverPlot(u, v)
 
     def InterPointCalc(self,CurrentPoint,LMP):   
         LM= Circle(LMP,1) 
-        return Circle(CurrentPoint,np.prod(CurrentPoint.distance(LMP).args)).intersection(LM)
+        return Circle(CurrentPoint,CurrentPoint.distance(LMP)).intersection(LM)
+         
 
-    def AngluarSice(self,CP,INPoints):
-        ln1=Line(CP,INPoints[0])
-        ln2=Line(CP,INPoints[1])
+    def AngleCalc(self,CP,LMP):
         Xline = Line (CP, (1,0))
-        angle1= Xline.smallest_angle_between(ln1)
-        angle2 = Xline.smallest_angle_between(ln2)
-        anglesice = ln1.smallest_angle_between(ln2)
-        LMAngle = [anglesice, angle1, angle2]
+        INPoints = self.InterPointCalc(CP,LMP) 
 
-        return LMAngel
+        ln1=Line(CP,INPoints[0])
+        angle1= Xline.smallest_angle_between(ln1)
+
+        ln2=Line(CP,INPoints[1])
+        angle2 = Xline.smallest_angle_between(ln2)
+
+        HLn = Line(CP,LMP)
+        HalfAngle = Xline.smallest_angle_between(HLn)
+
+        if  INPoints[0].args[1]<0:
+          angle1 = angle1 * -1
+                    
+        if  INPoints[1].args[1]<0:
+            angle2 = angle2 * -1
+
+        anglesice = ln1.smallest_angle_between(ln2)
+        return [anglesice, HalfAngle]
 
     def QuiverPlot(self,u,v):
         # Create quiver figure
@@ -99,9 +110,6 @@ class StartScreen(GridLayout):
 
         ax.set_title('Honey Way')
         plt.show()
-
-
-
 
 class TestApp(App):
     def build(self):
