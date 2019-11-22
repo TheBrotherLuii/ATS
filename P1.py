@@ -54,26 +54,33 @@ class StartScreen(GridLayout):
     
     def CalculateDrawing(self,instance):
 
+        self.LM1P = Point(float(self.LM1_X.text),float(self.LM1_Y.text))
+        self.LM2P = Point(float(self.LM2_X.text),float(self.LM2_Y.text))
+        self.LM3P = Point(float(self.LM3_X.text),float(self.LM3_Y.text))
+
         TPP = Point(float(self.TP_X.text),float(self.TP_Y.text))
+        TPAngleLM = self.AnglestoLM(TPP)
 
-        LM1P = Point(float(self.LM1_X.text),float(self.LM1_Y.text))
-        LM2P = Point(float(self.LM2_X.text),float(self.LM2_Y.text))
-        LM3P = Point(float(self.LM3_X.text),float(self.LM3_Y.text))
+        xx,yy  = np.meshgrid(np.arange(-7, 8, 1),np.arange(-7, 8, 1), indexing='xy')
+        for i in range(len(xx)):
+            for j in range(len(yy)):
+                CP = Point(xx[j,i],yy[j,i])
+                SSAngles = self.AnglestoLM(CP)
+                TPAngleM = self.MatchTPAngles(SSAngles,TPAngleLM)
+                print(TPAngleM)
 
-        TPAngLM1 = self.AngleCalc(TPP,LM1P)
-        TPAngLM2 = self.AngleCalc(TPP,LM2P)
-        TPAngLM3 = self.AngleCalc(TPP,LM3P)
+    def MatchTPAngles(self,SSAngles,TPAngles): 
+        t = TPAngles[0][1]
+        t2 = TPAngles[1][1]
+        t3 = TPAngles[2][1]
+        return True
 
-        xx, yy = np.meshgrid(np.arange(-7, 8, 1),np.arange(-7, 8, 1), indexing='xy')
-        for i in range(xx):
-            for j in range(yy):
-                CP = Point(float(i),float(yy))
-                SSAngLM1 = self.AngleCalc(CP,LM1P)
-                SSAngLM2 = self.AngleCalc(CP,LM2P)
-                SSAngLM3 = self.AngleCalc(CP,LM3P)
-
-        self.QuiverPlot(u, v)
-
+    def AnglestoLM(self,CurrentPoint):   
+        AngLM1 = self.AngleCalc(CurrentPoint,self.LM1P)
+        AngLM2 = self.AngleCalc(CurrentPoint,self.LM2P)
+        AngLM3 = self.AngleCalc(CurrentPoint,self.LM3P)
+        return [AngLM1,AngLM2,AngLM3]
+ 
     def InterPointCalc(self,CurrentPoint,LMP):   
         LM= Circle(LMP,1) 
         return Circle(CurrentPoint,CurrentPoint.distance(LMP)).intersection(LM)
@@ -82,13 +89,10 @@ class StartScreen(GridLayout):
     def AngleCalc(self,CP,LMP):
         Xline = Line (CP, (1,0))
         INPoints = self.InterPointCalc(CP,LMP) 
-
         ln1=Line(CP,INPoints[0])
         angle1= Xline.smallest_angle_between(ln1)
-
         ln2=Line(CP,INPoints[1])
         angle2 = Xline.smallest_angle_between(ln2)
-
         HLn = Line(CP,LMP)
         HalfAngle = Xline.smallest_angle_between(HLn)
 
@@ -98,7 +102,7 @@ class StartScreen(GridLayout):
         if  INPoints[1].args[1]<0:
             angle2 = angle2 * -1
 
-        if np.sign(angle1) == np.sign(angle2):
+        if angle1 >= 0 and  angle2 >= 0 or angle1 < 0 and  angle2 < 0:
             SiceAngle = ln1.smallest_angle_between(ln2)
         else:
             SiceAngle = np.abs(angle1) + np.abs(angle2)
