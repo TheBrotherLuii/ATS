@@ -64,6 +64,10 @@ class StartScreen(GridLayout):
         TPAngLM2 = self.AngleCalc(TPP,LM2P)
         TPAngLM3 = self.AngleCalc(TPP,LM3P)
 
+        print(TPAngLM1)
+        print(TPAngLM2)
+        print(TPAngLM3)
+
         u, v = np.meshgrid(np.arange(-7, 8, 1), np.arange(-7, 8, 1))
         self.QuiverPlot(u, v)
 
@@ -86,13 +90,17 @@ class StartScreen(GridLayout):
         HalfAngle = Xline.smallest_angle_between(HLn)
 
         if  INPoints[0].args[1]<0:
-          angle1 = angle1 * -1
+            angle1 = angle1 * -1
                     
         if  INPoints[1].args[1]<0:
             angle2 = angle2 * -1
 
-        anglesice = ln1.smallest_angle_between(ln2)
-        return [anglesice, HalfAngle]
+        if np.sign(angle1) == np.sign(angle2):
+            SiceAngle = ln1.smallest_angle_between(ln2)
+        else:
+            SiceAngle = np.abs(angle1) + np.abs(angle2)
+
+        return [SiceAngle, HalfAngle]
 
     def QuiverPlot(self,u,v):
         # Create quiver figure
