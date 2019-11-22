@@ -1,9 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sympy import *
-from sympy.geometry import *
-
+from sympy import Eq
+from sympy.geometry import Point, Circle, Line
 
 from kivy.app import App
 from kivy.uix.button import Button
@@ -55,15 +54,34 @@ class StartScreen(GridLayout):
     
     def CalculateDrawing(self,instance):
 
-        LM1= Circle(Point(float(self.LM1_X.text),float(self.LM1_Y.text)),1)
-        LM2= Circle(Point(float(self.LM2_X.text),float(self.LM2_Y.text)),1)
-        LM3= Circle(Point(float(self.LM3_X.text),float(self.LM3_Y.text)),1)
+        TPP = Point(float(self.TP_X.text),float(self.TP_Y.text))
 
-        TPC = Circle((float(self.TP_X.text),float(self.TP_Y.text),TP.canberra_distance(LM1)) 
-        InPoint = TPC.intersection(LM1)
-        print(InPoint)
+        LM1P = Point(float(self.LM1_X.text),float(self.LM1_Y.text))
+        LM2P = Point(float(self.LM2_X.text),float(self.LM2_Y.text))
+        LM3P = Point(float(self.LM3_X.text),float(self.LM3_Y.text))
+        InLM1 = self.InterPointCalc(TPP,LM1P)   
+        InLM2 = self.InterPointCalc(TPP,LM2P)  
+        InLM3 = self.InterPointCalc(TPP,LM3P)  
+
+        Ang1 = self.AngluarSice(TPP,InLM1)
+
         u, v = np.meshgrid(np.arange(-7, 8, 1), np.arange(-7, 8, 1))
         self.QuiverPlot(u, v)
+
+    def InterPointCalc(self,CurrentPoint,LMP):   
+        LM= Circle(LMP,1) 
+        return Circle(CurrentPoint,np.prod(CurrentPoint.distance(LMP).args)).intersection(LM)
+
+    def AngluarSice(self,CP,INPoints):
+        ln1=Line(CP,INPoints[0])
+        ln2=Line(CP,INPoints[1])
+        Xline = Line (CP, (1,0))
+        angle1= Xline.smallest_angle_between(ln1)
+        angle2 = Xline.smallest_angle_between(ln2)
+        anglesice = ln1.smallest_angle_between(ln2)
+        LMAngle = [anglesice, angle1, angle2]
+        
+        return LMAngels
 
     def QuiverPlot(self,u,v):
         # Create quiver figure
@@ -72,7 +90,7 @@ class StartScreen(GridLayout):
 
         x, y = np.meshgrid(np.arange(-7, 8, 1), np.arange(-7, 8, 1))
 
-        ax.quiver(x, y,u,v,angles='xy', scale_units='xy', scale=1)
+        ax.quiver(x,y,u,v,angles='xy', scale_units='xy', scale=1)
 
         LMX=np.array([float(self.LM1_X.text), float(self.LM2_X.text) ,float(self.LM3_X.text)])
         LMY=np.array([float(self.LM1_Y.text),float(self.LM2_Y.text),float(self.LM3_Y.text)])
@@ -81,6 +99,9 @@ class StartScreen(GridLayout):
 
         ax.set_title('Honey Way')
         plt.show()
+
+
+
 
 class TestApp(App):
     def build(self):
