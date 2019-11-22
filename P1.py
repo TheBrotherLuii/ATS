@@ -64,11 +64,14 @@ class StartScreen(GridLayout):
         TPAngLM2 = self.AngleCalc(TPP,LM2P)
         TPAngLM3 = self.AngleCalc(TPP,LM3P)
 
-        print(TPAngLM1)
-        print(TPAngLM2)
-        print(TPAngLM3)
+        xx, yy = np.meshgrid(np.arange(-7, 8, 1),np.arange(-7, 8, 1), indexing='xy')
+        for i in range(xx):
+            for j in range(yy):
+                CP = Point(float(i),float(yy))
+                SSAngLM1 = self.AngleCalc(CP,LM1P)
+                SSAngLM2 = self.AngleCalc(CP,LM2P)
+                SSAngLM3 = self.AngleCalc(CP,LM3P)
 
-        u, v = np.meshgrid(np.arange(-7, 8, 1), np.arange(-7, 8, 1))
         self.QuiverPlot(u, v)
 
     def InterPointCalc(self,CurrentPoint,LMP):   
