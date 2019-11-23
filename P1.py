@@ -70,7 +70,16 @@ class StartScreen(GridLayout):
                 print(TPAngleM)
 
     def MatchTPAngles(self,SSAngles,TPAngles): 
-        t = TPAngles[0][1]
+        
+        diff = 2
+        for i in range(len(SSAngles)):
+            if abs(SSAngles[i][1] - TPAngles[0][1])<diff:
+                diff = abs(SSAngles[i][1] - TPAngles[0][1])    
+            if abs(SSAngles[i][1] - TPAngles[0][1])>1:
+                if abs(SSAngles[i][1] - TPAngles[0][1])
+                diff = abs(SSAngles[i][1] - TPAngles[0][1])
+
+
         t2 = TPAngles[1][1]
         t3 = TPAngles[2][1]
         return True
