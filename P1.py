@@ -16,7 +16,7 @@ class StartScreen(GridLayout):
 
     def __init__(self,**kwargs):
         super(StartScreen,self).__init__(**kwargs)
- 
+        #Interface
         self.cols = 3
         self.add_widget(Label(text='',font_size='20sp'))
         self.add_widget(Label(text='X-Value',font_size='20sp'))
@@ -53,70 +53,147 @@ class StartScreen(GridLayout):
         self.add_widget(Label(text=''))
     
     def CalculateDrawing(self,instance):
-
+        #setting up LandMark Centers
         self.LM1P = Point(float(self.LM1_X.text),float(self.LM1_Y.text))
         self.LM2P = Point(float(self.LM2_X.text),float(self.LM2_Y.text))
         self.LM3P = Point(float(self.LM3_X.text),float(self.LM3_Y.text))
-
-        TPP = Point(float(self.TP_X.text),float(self.TP_Y.text))
-        TPAngleLM = self.AnglestoLM(TPP)
-
+       
+        TPP = Point(float(self.TP_X.text),float(self.TP_Y.text))  #setting up TargetPoint Points
+        TPAngleLM, TPAngleEmpty = self.AnglestoLM(TPP)#Angel to LM
+        #setting up meshgris -7 to 7
         xx,yy  = np.meshgrid(np.arange(-7, 8, 1),np.arange(-7, 8, 1), indexing='xy')
         for i in range(len(xx)):
             for j in range(len(yy)):
-                CP = Point(xx[j,i],yy[j,i])
-                SSAngles = self.AnglestoLM(CP)
-                TPAngleM = self.MatchTPAngles(SSAngles,TPAngleLM)
-                print(TPAngleM)
+                CP = Point(xx[j,i],yy[j,i]) #Current Loop Point
+                SSAngles = self.AnglestoLM(CP) #Snapshot to LM Current Point
+                AngleMidx = self.MatchTPAngles(SSAngles,TPAngleLM) #Matching Angles
+                
 
     def MatchTPAngles(self,SSAngles,TPAngles): 
-        
-        diff = 2
+        SSAnglelist= [SSAngles[0][1] , SSAngles[1][1] ,  SSAngles[2][1]]
         for i in range(len(SSAngles)):
-            if abs(SSAngles[i][1] - TPAngles[0][1])<diff:
-                diff = abs(SSAngles[i][1] - TPAngles[0][1])    
-            if abs(SSAngles[i][1] - TPAngles[0][1])>1:
-                if abs(SSAngles[i][1] - TPAngles[0][1])
-                diff = abs(SSAngles[i][1] - TPAngles[0][1])
+            SSAnglelist = np.asarray(SSAnglelist)
+            idx = (np.abs(SSAnglelist - TPAngles[i][1])).argmin()
+
+        return idx
+
+    def AnglestoLM(self,CurrentPoint):  
+        AngLM1 = self.AngleLMCalc(CurrentPoint,self.LM1P)
+        AngLM2 = self.AngleLMCalc(CurrentPoint,self.LM2P)
+        AngLM3 = self.AngleLMCalc(CurrentPoint,self.LM3P)
+        AngET1 = self.AngleEtCalc(CurrentPoint,AngLM1,AngLM2,AngLM3)
+
+        return [AngLM1,AngLM2,AngLM3], AngET1
 
 
-        t2 = TPAngles[1][1]
-        t3 = TPAngles[2][1]
-        return True
-
-    def AnglestoLM(self,CurrentPoint):   
-        AngLM1 = self.AngleCalc(CurrentPoint,self.LM1P)
-        AngLM2 = self.AngleCalc(CurrentPoint,self.LM2P)
-        AngLM3 = self.AngleCalc(CurrentPoint,self.LM3P)
-        return [AngLM1,AngLM2,AngLM3]
- 
     def InterPointCalc(self,CurrentPoint,LMP):   
         LM= Circle(LMP,1) 
         return Circle(CurrentPoint,CurrentPoint.distance(LMP)).intersection(LM)
-         
 
-    def AngleCalc(self,CP,LMP):
-        Xline = Line (CP, (1,0))
-        INPoints = self.InterPointCalc(CP,LMP) 
+    def AngleLMCalc(self,CP,LMP):
+        Xline = Line (CP, (1,0)) #x-Line
+        INPoints = self.InterPointCalc(CP,LMP) #Calculate outside Points of LM from CP
         ln1=Line(CP,INPoints[0])
-        angle1= Xline.smallest_angle_between(ln1)
+        Angle1= Xline.smallest_angle_between(ln1) #Angle of 1 LMpoint to X
         ln2=Line(CP,INPoints[1])
-        angle2 = Xline.smallest_angle_between(ln2)
-        HLn = Line(CP,LMP)
-        HalfAngle = Xline.smallest_angle_between(HLn)
+        Angle2 = Xline.smallest_angle_between(ln2) #Angle of 2 LMpoint to X
 
-        if  INPoints[0].args[1]<0:
-            angle1 = angle1 * -1
-                    
-        if  INPoints[1].args[1]<0:
-            angle2 = angle2 * -1
 
-        if angle1 >= 0 and  angle2 >= 0 or angle1 < 0 and  angle2 < 0:
-            SiceAngle = ln1.smallest_angle_between(ln2)
+    
+        if  INPoints[0].args[1]<0: # if negativ Y angle negativ  
+            if  INPoints[0].args[0]>0: # if positiv  X angle positiv
+                Angle1 = 2 * np.pi - Angle1
+            else:
+                Angle1 = Angle1 + np.pi
+        elif INPoints[0].args[0]<0: # if negativ  X angle negativ
+            Angle1 = np.pi - Angle1
+
+        if  INPoints[1].args[1]<0: # if negativ Y angle negativ  
+            if  INPoints[0].args[0]>0: # if positiv  X angle positiv
+                Angle2 = 2 * np.pi - Angle2
+            else:
+                Angle2 = Angle2 + np.pi
+        elif INPoints[1].args[0]<0: # if negativ  X angle negativ
+            Angle2 = np.pi - Angle2
+
+        SiceAngle,HalfAngle = AngleHalfAndSice(Angle1,Angle2) 
+
+        return [SiceAngle,HalfAngle,Angle1,Angle2]
+
+    
+    def AngleEtCalc(self,CP,LM1,LM2,LM3): 
+        LM = [LM1, LM2 , LM3]
+        LM = np.asarray(LM)
+
+        LM = LM[1].sort()
+
+        if LM[0][2]>np.pi or LM[0][3]>np.pi:
+            if LM[0][2]<LM[0][3] #liegt auf x achse
+                EMPAngle=LM[0][2]
+            else:
+                EMPAngle=LM[0][3]
         else:
-            SiceAngle = np.abs(angle1) + np.abs(angle2)
+            if LM[0][2]>LM[0][3] #liegt nicht auf x achse
+                EMPAngle=LM[0][2]
+            else:
+                EMPAngle=LM[0][3]
+        
+        if LM[1][2]<LM[1][3] 
+            EMPAngle2=LM[1][2]
+        else:
+            EMPAngle2=LM[1][3]
+
+        SiceAngle,HalfAngle = AngleHalfAndSice(EMPAngle,EMPAngle2) 
+
+        EM1 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
+        
+        if LM[1][2]>LM[1][3] 
+            EMPAngle=LM[1][2]
+        else:
+            EMPAngle=LM[1][3]
+
+        
+        if LM[2][2]<LM[2][3] 
+            EMPAngle2=LM[2][2]
+        else:
+            EMPAngle2=LM[2][3]
+
+        SiceAngle,HalfAngle = AngleHalfAndSice(EMPAngle,EMPAngle2) 
+        EM2 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
+
+        if LM[2][2]>LM[2][3] 
+            EMPAngle=LM[2][2]
+        else:
+            EMPAngle=LM[2][3]
+
+        if LM[0][2]>np.pi or LM[0][3]>np.pi:
+            if LM[0][2]>LM[0][3] #liegt auf x achse
+                EMPAngle2=LM[0][2]
+            else:
+                EMPAngle2=LM[0][3]
+        else:
+            if LM[0][2]<LM[0][3] #liegt nicht auf x achse
+                EMPAngle2=LM[0][2]
+            else:
+                EMPAngle2=LM[0][3]
+
+        SiceAngle,HalfAngle = AngleHalfAndSice(EMPAngle,EMPAngle2) 
+        EM3 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
 
         return [SiceAngle, HalfAngle]
+
+    def  AngleHalfAndSice(self,Ang1,Ang2):   
+
+        SiceAngle = abs(Ang1-Ang2) # AngleSice
+        HalfAngle = (Ang1+Ang2)/2
+
+        if SiceAngle > np.pi:
+            SiceAngle = 2* np.pi - SiceAngle
+            HalfAngle = HalfAngle - np.pi 
+
+
+        return SiceAngle,HalfAngle
+
 
     def QuiverPlot(self,u,v):
         # Create quiver figure
