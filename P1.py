@@ -12,6 +12,8 @@ from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
 
 
+
+
 class StartScreen(GridLayout):
 
     def __init__(self,**kwargs):
@@ -116,72 +118,71 @@ class StartScreen(GridLayout):
         elif INPoints[1].args[0]<0: # if negativ  X angle negativ
             Angle2 = np.pi - Angle2
 
-        SiceAngle,HalfAngle = AngleHalfAndSice(Angle1,Angle2) 
+        SiceAngle,HalfAngle = self.AngleHalfAndSice(Angle1,Angle2) 
 
         return [SiceAngle,HalfAngle,Angle1,Angle2]
 
     
     def AngleEtCalc(self,CP,LM1,LM2,LM3): 
         LM = [LM1, LM2 , LM3]
-        LM = np.asarray(LM)
 
-        LM = LM[1].sort()
+        LM.sort(key=lambda HAng: HAng[1])
 
         if LM[0][2]>np.pi or LM[0][3]>np.pi:
-            if LM[0][2]<LM[0][3] #liegt auf x achse
+            if LM[0][2]<LM[0][3]: #liegt auf x achse
                 EMPAngle=LM[0][2]
             else:
                 EMPAngle=LM[0][3]
         else:
-            if LM[0][2]>LM[0][3] #liegt nicht auf x achse
+            if LM[0][2]>LM[0][3]: #liegt nicht auf x achse
                 EMPAngle=LM[0][2]
             else:
                 EMPAngle=LM[0][3]
         
-        if LM[1][2]<LM[1][3] 
+        if LM[1][2]<LM[1][3]: 
             EMPAngle2=LM[1][2]
         else:
             EMPAngle2=LM[1][3]
 
-        SiceAngle,HalfAngle = AngleHalfAndSice(EMPAngle,EMPAngle2) 
+        SiceAngle,HalfAngle = self.AngleHalfAndSice(EMPAngle,EMPAngle2) 
 
         EM1 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
         
-        if LM[1][2]>LM[1][3] 
+        if LM[1][2]>LM[1][3]: 
             EMPAngle=LM[1][2]
         else:
             EMPAngle=LM[1][3]
 
         
-        if LM[2][2]<LM[2][3] 
+        if LM[2][2]<LM[2][3]: 
             EMPAngle2=LM[2][2]
         else:
             EMPAngle2=LM[2][3]
 
-        SiceAngle,HalfAngle = AngleHalfAndSice(EMPAngle,EMPAngle2) 
+        SiceAngle,HalfAngle = self.AngleHalfAndSice(EMPAngle,EMPAngle2) 
         EM2 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
 
-        if LM[2][2]>LM[2][3] 
+        if LM[2][2]>LM[2][3]: 
             EMPAngle=LM[2][2]
         else:
             EMPAngle=LM[2][3]
 
         if LM[0][2]>np.pi or LM[0][3]>np.pi:
-            if LM[0][2]>LM[0][3] #liegt auf x achse
+            if LM[0][2]>LM[0][3]: #liegt auf x achse
                 EMPAngle2=LM[0][2]
             else:
                 EMPAngle2=LM[0][3]
         else:
-            if LM[0][2]<LM[0][3] #liegt nicht auf x achse
+            if LM[0][2]<LM[0][3]: #liegt nicht auf x achse
                 EMPAngle2=LM[0][2]
             else:
                 EMPAngle2=LM[0][3]
 
-        SiceAngle,HalfAngle = AngleHalfAndSice(EMPAngle,EMPAngle2) 
+        SiceAngle,HalfAngle = self.AngleHalfAndSice(EMPAngle,EMPAngle2) 
         EM3 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
 
-        return [SiceAngle, HalfAngle]
-
+        return [EM1, EM2,EM3]
+    
     def  AngleHalfAndSice(self,Ang1,Ang2):   
 
         SiceAngle = abs(Ang1-Ang2) # AngleSice
