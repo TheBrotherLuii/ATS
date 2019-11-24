@@ -67,8 +67,8 @@ class StartScreen(GridLayout):
         for i in range(len(xx)):
             for j in range(len(yy)):
                 CP = Point(xx[j,i],yy[j,i]) #Current Loop Point
-                SSAngles = self.AnglestoLM(CP) #Snapshot to LM Current Point
-                AngleMidx = self.MatchTPAngles(SSAngles,TPAngleLM) #Matching Angles
+                SSAnglesLM, SSAnglesEmpty= self.AnglestoLM(CP) #Snapshot to LM Current Point
+                AngleMidx = self.MatchTPAngles(SSAnglesLM,TPAngleLM) #Matching Angles
                 
 
     def MatchTPAngles(self,SSAngles,TPAngles): 
@@ -118,83 +118,6 @@ class StartScreen(GridLayout):
         elif INPoints[1].args[0]<0: # if negativ  X angle negativ
             Angle2 = np.pi - Angle2
 
-        SiceAngle,HalfAngle = self.AngleHalfAndSice(Angle1,Angle2) 
-
-        return [SiceAngle,HalfAngle,Angle1,Angle2]
-
-    
-    def AngleEtCalc(self,CP,LM1,LM2,LM3): 
-        LM = [LM1, LM2 , LM3]
-
-        LM.sort(key=lambda HAng: HAng[1])
-
-        if LM[0][2]>np.pi or LM[0][3]>np.pi:
-            if LM[0][2]<LM[0][3]: #liegt auf x achse
-                EMPAngle=LM[0][2]
-            else:
-                EMPAngle=LM[0][3]
-        else:
-            if LM[0][2]>LM[0][3]: #liegt nicht auf x achse
-                EMPAngle=LM[0][2]
-            else:
-                EMPAngle=LM[0][3]
-        
-        if LM[1][2]<LM[1][3]: 
-            EMPAngle2=LM[1][2]
-        else:
-            EMPAngle2=LM[1][3]
-
-        SiceAngle = abs(EMPAngle-EMPAngle2) # AngleSice
-        HalfAngle = (EMPAngle+EMPAngle2)/2
-
-        EM1 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
-        
-        if LM[1][2]>LM[1][3]: 
-            EMPAngle=LM[1][2]
-        else:
-            EMPAngle=LM[1][3]
-
-        
-        if LM[2][2]<LM[2][3]: 
-            EMPAngle2=LM[2][2]
-        else:
-            EMPAngle2=LM[2][3]
-
-        SiceAngle = abs(EMPAngle-EMPAngle2) # AngleSice
-        HalfAngle = (EMPAngle+EMPAngle2)/2
-        EM2 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
-
-        if LM[2][2]>LM[2][3]: 
-            EMPAngle=LM[2][2]
-        else:
-            EMPAngle=LM[2][3]
-
-        if LM[0][2]>EMPAngle: #beide groß
-            EMPAngle2 = LM[0][2]
-            HalfAngle = (EMPAngle2 + EMPAngle)/2
-            SiceAngle = EMPAngle2 - EMPAngle
-        elif LM[0][3]>EMPAngle:
-            EMPAngle2 = LM[0][3]
-            HalfAngle = (EMPAngle2 + EMPAngle)/2
-            SiceAngle = EMPAngle2 - EMPAngle
-        else:
-            if LM[0][2]>LM[0][3]: #einer sehr klein
-                EMPAngle2=LM[0][3]
-                SiceAngle = EMPAngle2 + 2 * np.pi - EMPAngle
-                HalfAngle = EMPAngle2 + SiceAngle/2
-            else:
-                EMPAngle2=LM[0][2]
-                SiceAngle = EMPAngle2 + 2 * np.pi - EMPAngle
-                HalfAngle = EMPAngle2 + SiceAngle/2
-            if HalfAngle > 2 * np.pi:
-                HalfAngle = HalfAngle - 2 * np.pi
-                 
-        EM3 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
-
-        return [EM1, EM2,EM3]
-    
-    def  AngleHalfAndSice(self,Ang1,Ang2):   
-
         SiceAngle = abs(Ang1-Ang2) # AngleSice
         HalfAngle = (Ang1+Ang2)/2
 
@@ -202,8 +125,53 @@ class StartScreen(GridLayout):
             SiceAngle = 2* np.pi - SiceAngle
             HalfAngle = HalfAngle - np.pi 
 
+        return [SiceAngle,HalfAngle,Angle1,Angle2]
 
-        return SiceAngle,HalfAngle
+    
+    def AngleEtCalc(self,CP,LM1,LM2,LM3): 
+        LM = [LM1, LM2 , LM3]
+        LM.sort(key=lambda HAng: HAng[1])
+
+        EM1 = self.EmptyAngelCalc(0,1,LM)
+        EM2 = self.EmptyAngelCalc(1,2,LM)            
+        EM3 = self.EmptyAngelCalc(2,0,LM)
+
+        return [EM1,EM2,EM3]
+    
+
+
+    def  EmptyAngelCalc(self,idx1,idx2,LM):   
+
+        if 4,71<LM[idx1][2] or 4,71<LM[idx1][3] and LM[idx1][2]<1,57 or LM[idx1][3]<1,57:
+            if LM[idx1][2]<LM[idx1][3]: #LM liegt auf X Achse
+                EMPAngle=LM[idx1][2]
+            else:
+                EMPAngle=LM[idx1][3]
+        else:    
+            if LM[idx1][2]>LM[idx1][3]: #LM liegt nicht auf X Achse
+                EMPAngle=LM[idx1][2]
+            else:
+                EMPAngle=LM[idx1][3]
+
+        if 4,71<LM[idx2][2] or 4,71<LM[idx2][3] and LM[idx2][2]<1,57 or LM[idx2][3]<1,57:
+            if LM[idx2][2]>LM[idx2][3]: #LM liegt auf X Achse
+                EMPAngle2=LM[idx2][2]
+            else:
+                EMPAngle2=LM[idx2][3]
+        else:
+            if LM[idx2][2]<LM[idx2][3]: #LM liegt nicht auf X Achse
+                EMPAngle2=LM[idx2][3]
+            else:
+                EMPAngle2=LM[idx2][2]
+        if EMPAngle2>=EMPAngle:
+            SiceAngle = EMPAngle2 - EMPAngle
+            HalfAngle = (EMPAngle2 + EMPAngle2)/2
+        else:
+            SiceAngle = EMPAngle2 + 2 * np.pi - EMPAngle
+            HalfAngle = EMPAngle2 + SiceAngle/2 
+            if HalfAngle > 2 * np.pi:
+                HalfAngle = HalfAngle - 2 * np.pi
+    return [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
 
 
     def QuiverPlot(self,u,v):
