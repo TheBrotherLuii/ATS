@@ -111,7 +111,7 @@ class StartScreen(GridLayout):
             Angle1 = np.pi - Angle1
 
         if  INPoints[1].args[1]<0: # if negativ Y angle negativ  
-            if  INPoints[0].args[0]>0: # if positiv  X angle positiv
+            if  INPoints[1].args[0]>0: # if positiv  X angle positiv
                 Angle2 = 2 * np.pi - Angle2
             else:
                 Angle2 = Angle2 + np.pi
@@ -144,7 +144,8 @@ class StartScreen(GridLayout):
         else:
             EMPAngle2=LM[1][3]
 
-        SiceAngle,HalfAngle = self.AngleHalfAndSice(EMPAngle,EMPAngle2) 
+        SiceAngle = abs(EMPAngle-EMPAngle2) # AngleSice
+        HalfAngle = (EMPAngle+EMPAngle2)/2
 
         EM1 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
         
@@ -159,7 +160,8 @@ class StartScreen(GridLayout):
         else:
             EMPAngle2=LM[2][3]
 
-        SiceAngle,HalfAngle = self.AngleHalfAndSice(EMPAngle,EMPAngle2) 
+        SiceAngle = abs(EMPAngle-EMPAngle2) # AngleSice
+        HalfAngle = (EMPAngle+EMPAngle2)/2
         EM2 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
 
         if LM[2][2]>LM[2][3]: 
@@ -167,18 +169,26 @@ class StartScreen(GridLayout):
         else:
             EMPAngle=LM[2][3]
 
-        if LM[0][2]>np.pi or LM[0][3]>np.pi:
-            if LM[0][2]>LM[0][3]: #liegt auf x achse
-                EMPAngle2=LM[0][2]
-            else:
-                EMPAngle2=LM[0][3]
+        if LM[0][2]>EMPAngle: #beide groß
+            EMPAngle2 = LM[0][2]
+            HalfAngle = (EMPAngle2 + EMPAngle)/2
+            SiceAngle = EMPAngle2 - EMPAngle
+        elif LM[0][3]>EMPAngle:
+            EMPAngle2 = LM[0][3]
+            HalfAngle = (EMPAngle2 + EMPAngle)/2
+            SiceAngle = EMPAngle2 - EMPAngle
         else:
-            if LM[0][2]<LM[0][3]: #liegt nicht auf x achse
-                EMPAngle2=LM[0][2]
-            else:
+            if LM[0][2]>LM[0][3]: #einer sehr klein
                 EMPAngle2=LM[0][3]
-
-        SiceAngle,HalfAngle = self.AngleHalfAndSice(EMPAngle,EMPAngle2) 
+                SiceAngle = EMPAngle2 + 2 * np.pi - EMPAngle
+                HalfAngle = EMPAngle2 + SiceAngle/2
+            else:
+                EMPAngle2=LM[0][2]
+                SiceAngle = EMPAngle2 + 2 * np.pi - EMPAngle
+                HalfAngle = EMPAngle2 + SiceAngle/2
+            if HalfAngle > 2 * np.pi:
+                HalfAngle = HalfAngle - 2 * np.pi
+                 
         EM3 = [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
 
         return [EM1, EM2,EM3]
