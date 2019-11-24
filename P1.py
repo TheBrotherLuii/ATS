@@ -11,9 +11,6 @@ from kivy.uix.label import Label
 from kivy.uix.slider import Slider
 from kivy.uix.textinput import TextInput
 
-
-
-
 class StartScreen(GridLayout):
 
     def __init__(self,**kwargs):
@@ -76,7 +73,6 @@ class StartScreen(GridLayout):
         for i in range(len(SSAngles)):
             SSAnglelist = np.asarray(SSAnglelist)
             idx = (np.abs(SSAnglelist - TPAngles[i][1])).argmin()
-
         return idx
 
     def AnglestoLM(self,CurrentPoint):  
@@ -100,8 +96,6 @@ class StartScreen(GridLayout):
         ln2=Line(CP,INPoints[1])
         Angle2 = Xline.smallest_angle_between(ln2) #Angle of 2 LMpoint to X
 
-
-    
         if  INPoints[0].args[1]<0: # if negativ Y angle negativ  
             if  INPoints[0].args[0]>0: # if positiv  X angle positiv
                 Angle1 = 2 * np.pi - Angle1
@@ -120,14 +114,11 @@ class StartScreen(GridLayout):
 
         SiceAngle = abs(Ang1-Ang2) # AngleSice
         HalfAngle = (Ang1+Ang2)/2
-
         if SiceAngle > np.pi:
             SiceAngle = 2* np.pi - SiceAngle
             HalfAngle = HalfAngle - np.pi 
-
         return [SiceAngle,HalfAngle,Angle1,Angle2]
 
-    
     def AngleEtCalc(self,CP,LM1,LM2,LM3): 
         LM = [LM1, LM2 , LM3]
         LM.sort(key=lambda HAng: HAng[1])
@@ -135,11 +126,8 @@ class StartScreen(GridLayout):
         EM1 = self.EmptyAngelCalc(0,1,LM)
         EM2 = self.EmptyAngelCalc(1,2,LM)            
         EM3 = self.EmptyAngelCalc(2,0,LM)
-
         return [EM1,EM2,EM3]
     
-
-
     def  EmptyAngelCalc(self,idx1,idx2,LM):   
 
         if 4,71<LM[idx1][2] or 4,71<LM[idx1][3] and LM[idx1][2]<1,57 or LM[idx1][3]<1,57:
