@@ -65,14 +65,81 @@ class StartScreen(GridLayout):
             for j in range(len(yy)):
                 CP = Point(xx[j,i],yy[j,i]) #Current Loop Point
                 SSAnglesLM, SSAnglesEmpty= self.AnglestoLM(CP) #Snapshot to LM Current Point
-                AngleMidx = self.MatchTPAngles(SSAnglesLM,TPAngleLM) #Matching Angles
-                
+                AngleLMMidx = self.MatchTPAngles(SSAnglesLM,TPAngleLM) #Matching Angles
+                AngleEmtMidx = self.MatchTPAngles(SSAnglesEmpty,TPAngleEmpty) #Matching Angles
+                DirectionVectorLm = self.FinalVectorCalc(SSAnglesLM,TPAngleLM,AngleLMMidx)
+                DirectionVectorEmt = self.FinalVectorCalc(SSAnglesEmpty,TPAngleEmpty,AngleEmtMidx)
+                FinaleVectorDirection = (DirectionVectorLm + DirectionVectorEmt)/2
+
+    def FinalVectorCalc(self,AngSS,AngTP,AndiD): 
+        UV = self.UnitVecCalc(AngTP[0][0],AngSS[AndiD[0]][0],AngSS[AndiD[0]][1])
+        UV = UV + self.UnitVecCalc(AngTP[1][0],AngSS[AndiD[1]][0],AngSS[AndiD[1]][1])
+        UV = UV +self.UnitVecCalc(AngTP[2][0],AngSS[AndiD[2]][0],AngSS[AndiD[2]][1])
+
+        AV = self.AngVecCalc(AngTP[0][1],AngSS[AndiD[0]][1],AngTP[0][0])
+        AV = AV + self.AngVecCalc(AngTP[1][1],AngSS[AndiD[1]][1],AngTP[1][0])
+        AV = AV + self.AngVecCalc(AngTP[2][1],AngSS[AndiD[2]][1],AngTP[2][0])
+
+        FinalAng = (UV + AV * 3)/4
+        return FinalAng
+
+    def AngVecCalc(self,AngSS,AngTP,AngTPS): 
+        if AngSS == AngTP:
+            Ang=0
+        else:
+            if AngTP - np.pi <0:
+                if 2 * np.pi - ( AngTP - np.pi) < AngSS or AngSS < AngTP: #is negativ the right direction?
+                    if AngTPS<=np.pi: # TP < 180
+                        Ang = AngSS - np.pi/2
+                    else:
+                        Ang = AngSS + np.pi/2
+                else:
+                    if AngTPS>np.pi: # TP > 180
+                        Ang = AngSS - np.pi/2
+                    else:
+                        Ang = AngSS + np.pi/2
+            else:
+                if  AngTP - np.pi > AngSS or AngSS > AngTP: #is negativ the right direction?
+                    if AngTPS<=np.pi: # TP < 180
+                        Ang = AngSS - np.pi/2
+                    else:
+                        Ang = AngSS + np.pi/2
+                else:
+                    if AngTPS>np.pi: # TP > 180
+                        Ang = AngSS - np.pi/2
+                    else:
+                        Ang = AngSS + np.pi/2
+
+        if Ang < 0:
+            Ang = 2 * np.pi + Ang
+        if Ang > 2 * np.pi:
+            Ang= Ang - 2 * np.pi 
+
+        return Ang
+
+    def UnitVecCalc(self,AngSSSice,AngTPSice,AngSSD): 
+        if AngSSSice > AngTPSice:
+            Ang = AngSSD
+        elif AngSSSice < AngTPSice:
+            Ang = AngSSD + np.pi
+            if Ang >=  np.pi * 2:
+                Ang = Ang - 2* np.pi
+        else:
+            Ang = 0
+
+        return Ang
 
     def MatchTPAngles(self,SSAngles,TPAngles): 
-        SSAnglelist= [SSAngles[0][1] , SSAngles[1][1] ,  SSAngles[2][1]]
+        SSAnglelist= [SSAngles[0][1],SSAngles[1][1],SSAngles[2][1]]
+        idx = []
         for i in range(len(SSAngles)):
             SSAnglelist = np.asarray(SSAnglelist)
-            idx = (np.abs(SSAnglelist - TPAngles[i][1])).argmin()
+            cal = (np.abs(SSAnglelist - TPAngles[i][1])).argmin()
+            calcmax = (np.abs(SSAnglelist - TPAngles[i][1])).argmax()
+            if np.abs(SSAnglelist - TPAngles[calcmax][1])>= np.pi:
+                if  np.abs(SSAnglelist - TPAngles[calcmax][1]) - np.pi < np.abs(SSAnglelist - TPAngles[calc][1]):
+                    calc = calcmax
+            idx.append[calc]  
         return idx
 
     def AnglestoLM(self,CurrentPoint):  
@@ -80,9 +147,7 @@ class StartScreen(GridLayout):
         AngLM2 = self.AngleLMCalc(CurrentPoint,self.LM2P)
         AngLM3 = self.AngleLMCalc(CurrentPoint,self.LM3P)
         AngET1 = self.AngleEtCalc(CurrentPoint,AngLM1,AngLM2,AngLM3)
-
         return [AngLM1,AngLM2,AngLM3], AngET1
-
 
     def InterPointCalc(self,CurrentPoint,LMP):   
         LM= Circle(LMP,1) 
@@ -92,32 +157,32 @@ class StartScreen(GridLayout):
         Xline = Line (CP, (1,0)) #x-Line
         INPoints = self.InterPointCalc(CP,LMP) #Calculate outside Points of LM from CP
         ln1=Line(CP,INPoints[0])
-        Angle1= Xline.smallest_angle_between(ln1) #Angle of 1 LMpoint to X
+        Ang1= Xline.smallest_angle_between(ln1) #Angle of 1 LMpoint to X
         ln2=Line(CP,INPoints[1])
-        Angle2 = Xline.smallest_angle_between(ln2) #Angle of 2 LMpoint to X
+        Ang2 = Xline.smallest_angle_between(ln2) #Angle of 2 LMpoint to X
 
         if  INPoints[0].args[1]<0: # if negativ Y angle negativ  
             if  INPoints[0].args[0]>0: # if positiv  X angle positiv
-                Angle1 = 2 * np.pi - Angle1
+                Ang1 = 2 * np.pi - Ang1
             else:
-                Angle1 = Angle1 + np.pi
+                Ang1 = Ang1 + np.pi
         elif INPoints[0].args[0]<0: # if negativ  X angle negativ
-            Angle1 = np.pi - Angle1
+            Ang1 = np.pi - Ang1
 
         if  INPoints[1].args[1]<0: # if negativ Y angle negativ  
             if  INPoints[1].args[0]>0: # if positiv  X angle positiv
-                Angle2 = 2 * np.pi - Angle2
+                Ang2 = 2 * np.pi - Ang2
             else:
-                Angle2 = Angle2 + np.pi
+                Ang2 = Ang2 + np.pi
         elif INPoints[1].args[0]<0: # if negativ  X angle negativ
-            Angle2 = np.pi - Angle2
+            Ang2 = np.pi - Ang2
 
         SiceAngle = abs(Ang1-Ang2) # AngleSice
         HalfAngle = (Ang1+Ang2)/2
         if SiceAngle > np.pi:
             SiceAngle = 2* np.pi - SiceAngle
             HalfAngle = HalfAngle - np.pi 
-        return [SiceAngle,HalfAngle,Angle1,Angle2]
+        return [SiceAngle,HalfAngle,Ang1,Ang2]
 
     def AngleEtCalc(self,CP,LM1,LM2,LM3): 
         LM = [LM1, LM2 , LM3]
@@ -130,7 +195,7 @@ class StartScreen(GridLayout):
     
     def  EmptyAngelCalc(self,idx1,idx2,LM):   
 
-        if 4,71<LM[idx1][2] or 4,71<LM[idx1][3] and LM[idx1][2]<1,57 or LM[idx1][3]<1,57:
+        if (4.71<LM[idx1][2] or 4.71<LM[idx1][3]) and (LM[idx1][2]<1.57 or LM[idx1][3]<1.57):
             if LM[idx1][2]<LM[idx1][3]: #LM liegt auf X Achse
                 EMPAngle=LM[idx1][2]
             else:
@@ -141,25 +206,25 @@ class StartScreen(GridLayout):
             else:
                 EMPAngle=LM[idx1][3]
 
-        if 4,71<LM[idx2][2] or 4,71<LM[idx2][3] and LM[idx2][2]<1,57 or LM[idx2][3]<1,57:
+        if (4.71<LM[idx2][2] or 4.71<LM[idx2][3]) and (LM[idx2][2]<1.57 or LM[idx2][3]<1.57):
             if LM[idx2][2]>LM[idx2][3]: #LM liegt auf X Achse
                 EMPAngle2=LM[idx2][2]
             else:
                 EMPAngle2=LM[idx2][3]
         else:
             if LM[idx2][2]<LM[idx2][3]: #LM liegt nicht auf X Achse
-                EMPAngle2=LM[idx2][3]
-            else:
                 EMPAngle2=LM[idx2][2]
+            else:
+                EMPAngle2=LM[idx2][3]
         if EMPAngle2>=EMPAngle:
             SiceAngle = EMPAngle2 - EMPAngle
-            HalfAngle = (EMPAngle2 + EMPAngle2)/2
+            HalfAngle = (EMPAngle + EMPAngle2)/2
         else:
             SiceAngle = EMPAngle2 + 2 * np.pi - EMPAngle
-            HalfAngle = EMPAngle2 + SiceAngle/2 
+            HalfAngle = EMPAngle + SiceAngle/2 
             if HalfAngle > 2 * np.pi:
                 HalfAngle = HalfAngle - 2 * np.pi
-    return [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
+        return [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
 
 
     def QuiverPlot(self,u,v):
