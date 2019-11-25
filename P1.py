@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from sympy import Eq
+from sympy import Eq,pi,cos,sin
 from sympy.geometry import Point, Circle, Line
 
 from kivy.app import App
@@ -61,6 +61,8 @@ class StartScreen(GridLayout):
         TPAngleLM, TPAngleEmpty = self.AnglestoLM(TPP)#Angel to LM
         #setting up meshgris -7 to 7
         xx,yy  = np.meshgrid(np.arange(-7, 8, 1),np.arange(-7, 8, 1), indexing='xy')
+        xz = [[0] * len(xx) for i in range(len(yy))]
+        yz = [[0] * len(xx) for i in range(len(yy))]
         for i in range(len(xx)):
             for j in range(len(yy)):
                 CP = Point(xx[j,i],yy[j,i]) #Current Loop Point
@@ -68,8 +70,12 @@ class StartScreen(GridLayout):
                 AngleLMMidx = self.MatchTPAngles(SSAnglesLM,TPAngleLM) #Matching Angles
                 AngleEmtMidx = self.MatchTPAngles(SSAnglesEmpty,TPAngleEmpty) #Matching Angles
                 DirectionVectorLm = self.FinalVectorCalc(SSAnglesLM,TPAngleLM,AngleLMMidx)
-                DirectionVectorEmt = self.FinalVectorCalc(SSAnglesEmpty,TPAngleEmpty,AngleEmtMidx)
-                FinaleVectorDirection = (DirectionVectorLm + DirectionVectorEmt)/2
+                DirectionVectorEmt = self.FinalVectorCalc(SSAnglesEmpty,TPAngleEmpty,AngleEmtMidx)                
+                FAngle = (DirectionVectorLm + DirectionVectorEmt)/2
+                xz[j][i] = int((cos(FAngle) + xx[j,i])*10000)
+                yz[j][i] = int((sin(FAngle) + yy[j,i])*10000)
+
+        self.QuiverPlot(xz,yz)
             
     def FinalVectorCalc(self,AngSS,AngTP,AndiD): 
         UV = self.UnitVecCalc(AngTP[0][0],AngSS[AndiD[0]][0],AngSS[AndiD[0]][1])
@@ -110,15 +116,14 @@ class StartScreen(GridLayout):
                     else:
                         Ang = AngSS + (np.pi)/2
 
-        if Ang.is_comparable == False:
-            Ang = 0
-        else:
-            if Ang>2 * np.pi:
-                Ang= Ang - 2 * np.pi 
-            elif Ang<0:
-                Ang = 2 * np.pi + Ang
-
+                if Ang>2 * np.pi:
+                    Ang= Ang - 2 * np.pi 
+                elif Ang<0:
+                    Ang = 2 * np.pi + Ang
+        
         return Ang
+
+
 
     def UnitVecCalc(self,AngSSSice,AngTPSice,AngSSD): 
         if AngSSSice > AngTPSice:
@@ -157,34 +162,41 @@ class StartScreen(GridLayout):
         return Circle(CurrentPoint,CurrentPoint.distance(LMP)).intersection(LM)
 
     def AngleLMCalc(self,CP,LMP):
-        Xline = Line (CP, (1,0)) #x-Line
+
+        CP2 = CP + (1,0)
+        Xline = Line (CP, CP2) #x-Line
         INPoints = self.InterPointCalc(CP,LMP) #Calculate outside Points of LM from CP
-        ln1=Line(CP,INPoints[0])
-        Ang1= Xline.smallest_angle_between(ln1) #Angle of 1 LMpoint to X
-        ln2=Line(CP,INPoints[1])
-        Ang2 = Xline.smallest_angle_between(ln2) #Angle of 2 LMpoint to X
+        if len(INPoints)==2:
+            ln1=Line(CP,INPoints[0])
+            Ang1= Xline.smallest_angle_between(ln1).evalf() #Angle of 1 LMpoint to X
+            ln2=Line(CP,INPoints[1])
+            Ang2 = Xline.smallest_angle_between(ln2).evalf() #Angle of 2 LMpoint to X
+            if  INPoints[0].args[1]<0: # if negativ Y angle negativ  
+                if  INPoints[0].args[0]>0: # if positiv  X angle positiv
+                    Ang1 = 2 * np.pi - Ang1
+                else:
+                    Ang1 = Ang1 + np.pi
+            elif INPoints[0].args[0]<0: # if negativ  X angle negativ
+                Ang1 = np.pi - Ang1
 
-        if  INPoints[0].args[1]<0: # if negativ Y angle negativ  
-            if  INPoints[0].args[0]>0: # if positiv  X angle positiv
-                Ang1 = 2 * np.pi - Ang1
-            else:
-                Ang1 = Ang1 + np.pi
-        elif INPoints[0].args[0]<0: # if negativ  X angle negativ
-            Ang1 = np.pi - Ang1
+            if  INPoints[1].args[1]<0: # if negativ Y angle negativ  
+                if  INPoints[1].args[0]>0: # if positiv  X angle positiv
+                    Ang2 = 2 * np.pi - Ang2
+                else:
+                    Ang2 = Ang2 + np.pi
+            elif INPoints[1].args[0]<0: # if negativ  X angle negativ
+                Ang2 = np.pi - Ang2
 
-        if  INPoints[1].args[1]<0: # if negativ Y angle negativ  
-            if  INPoints[1].args[0]>0: # if positiv  X angle positiv
-                Ang2 = 2 * np.pi - Ang2
-            else:
-                Ang2 = Ang2 + np.pi
-        elif INPoints[1].args[0]<0: # if negativ  X angle negativ
-            Ang2 = np.pi - Ang2
-
-        SiceAngle = abs(Ang1-Ang2) # AngleSice
-        HalfAngle = (Ang1+Ang2)/2
-        if SiceAngle > np.pi:
-            SiceAngle = 2* np.pi - SiceAngle
-            HalfAngle = HalfAngle - np.pi 
+            SiceAngle = abs(Ang1-Ang2) # AngleSice
+            HalfAngle = (Ang1+Ang2)/2
+            if SiceAngle > np.pi:
+                SiceAngle = 2* np.pi - SiceAngle
+                HalfAngle = HalfAngle - np.pi 
+        else:
+            Ang1 = 0
+            Ang2 = 0
+            SiceAngle = 0
+            HalfAngle = 0
 
         return [SiceAngle,HalfAngle,Ang1,Ang2]
 
@@ -196,46 +208,29 @@ class StartScreen(GridLayout):
         EM2 = self.EmptyAngelCalc(1,2,LM)            
         EM3 = self.EmptyAngelCalc(2,0,LM)
         return [EM1,EM2,EM3]
-    
+
     def  EmptyAngelCalc(self,idx1,idx2,LM):   
 
         if (4.71<LM[idx1][2] or 4.71<LM[idx1][3]) and (LM[idx1][2]<1.57 or LM[idx1][3]<1.57):
-            try:
-                if LM[idx1][2]<LM[idx1][3]: #LM liegt auf X Achse
-                    EMPAngle=LM[idx1][2]
-                else:
-                    EMPAngle=LM[idx1][3]
-            except:
+            if LM[idx1][2]<LM[idx1][3]: #LM liegt auf X Achse
+                EMPAngle=LM[idx1][2]
+            else:
                 EMPAngle=LM[idx1][3]
-                pass
         else:
-            try:
                 if LM[idx1][2]>LM[idx1][3]: #LM liegt nicht auf X Achse
                     EMPAngle=LM[idx1][2]
                 else:
                     EMPAngle=LM[idx1][3]
-            except:
-                EMPAngle=LM[idx1][2]
-                pass 
-
         if (4.71<LM[idx2][2] or 4.71<LM[idx2][3]) and (LM[idx2][2]<1.57 or LM[idx2][3]<1.57):
-            try:
                 if LM[idx2][2]>LM[idx2][3]: #LM liegt auf X Achse
                     EMPAngle2=LM[idx2][2]
                 else:
                     EMPAngle2=LM[idx2][3]      
-            except:
-                EMPAngle2=LM[idx2][3]
-                pass
         else:
-            try:
                 if LM[idx2][2]<LM[idx2][3]: #LM liegt nicht auf X Achse
                     EMPAngle2=LM[idx2][2]
                 else:
                     EMPAngle2=LM[idx2][3]
-            except:
-                EMPAngle2=LM[idx2][2]
-                pass
         if EMPAngle2>=EMPAngle:
             SiceAngle = EMPAngle2 - EMPAngle
             HalfAngle = (EMPAngle + EMPAngle2)/2
@@ -246,14 +241,13 @@ class StartScreen(GridLayout):
                 HalfAngle = HalfAngle - 2 * np.pi
         return [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
 
-    def QuiverPlot(self,u,v):
+    def QuiverPlot(self,gridx,gridy):
         # Create quiver figure
         fig, ax = plt.subplots()
         ax.axis([-7, 7, -7, 7])
 
         x, y = np.meshgrid(np.arange(-7, 8, 1), np.arange(-7, 8, 1))
-
-        ax.quiver(x,y,u,v,angles='xy', scale_units='xy', scale=1)
+        ax.quiver(x,y,gridx,gridy,angles='uv', scale_units='xy', scale=1)
 
         LMX=np.array([float(self.LM1_X.text), float(self.LM2_X.text) ,float(self.LM3_X.text)])
         LMY=np.array([float(self.LM1_Y.text),float(self.LM2_Y.text),float(self.LM3_Y.text)])
