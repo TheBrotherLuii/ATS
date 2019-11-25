@@ -70,17 +70,17 @@ class StartScreen(GridLayout):
                 DirectionVectorLm = self.FinalVectorCalc(SSAnglesLM,TPAngleLM,AngleLMMidx)
                 DirectionVectorEmt = self.FinalVectorCalc(SSAnglesEmpty,TPAngleEmpty,AngleEmtMidx)
                 FinaleVectorDirection = (DirectionVectorLm + DirectionVectorEmt)/2
-
+            
     def FinalVectorCalc(self,AngSS,AngTP,AndiD): 
         UV = self.UnitVecCalc(AngTP[0][0],AngSS[AndiD[0]][0],AngSS[AndiD[0]][1])
         UV = UV + self.UnitVecCalc(AngTP[1][0],AngSS[AndiD[1]][0],AngSS[AndiD[1]][1])
         UV = UV +self.UnitVecCalc(AngTP[2][0],AngSS[AndiD[2]][0],AngSS[AndiD[2]][1])
-
+        UV = UV /3
         AV = self.AngVecCalc(AngTP[0][1],AngSS[AndiD[0]][1],AngTP[0][0])
         AV = AV + self.AngVecCalc(AngTP[1][1],AngSS[AndiD[1]][1],AngTP[1][0])
         AV = AV + self.AngVecCalc(AngTP[2][1],AngSS[AndiD[2]][1],AngTP[2][0])
-
-        FinalAng = (UV + AV * 3)/4
+        AV = AV /3
+        FinalAng = (UV+AV+AV+AV)/4
         return FinalAng
 
     def AngVecCalc(self,AngSS,AngTP,AngTPS): 
@@ -90,30 +90,33 @@ class StartScreen(GridLayout):
             if AngTP - np.pi <0:
                 if 2 * np.pi - ( AngTP - np.pi) < AngSS or AngSS < AngTP: #is negativ the right direction?
                     if AngTPS<=np.pi: # TP < 180
-                        Ang = AngSS - np.pi/2
+                        Ang = AngSS - (np.pi)/2
                     else:
-                        Ang = AngSS + np.pi/2
+                        Ang = AngSS + (np.pi)/2
                 else:
                     if AngTPS>np.pi: # TP > 180
-                        Ang = AngSS - np.pi/2
+                        Ang = AngSS - (np.pi)/2
                     else:
-                        Ang = AngSS + np.pi/2
+                        Ang = AngSS + (np.pi)/2
             else:
                 if  AngTP - np.pi > AngSS or AngSS > AngTP: #is negativ the right direction?
                     if AngTPS<=np.pi: # TP < 180
-                        Ang = AngSS - np.pi/2
+                        Ang = AngSS - (np.pi)/2
                     else:
-                        Ang = AngSS + np.pi/2
+                        Ang = AngSS + (np.pi)/2
                 else:
                     if AngTPS>np.pi: # TP > 180
-                        Ang = AngSS - np.pi/2
+                        Ang = AngSS - (np.pi)/2
                     else:
-                        Ang = AngSS + np.pi/2
+                        Ang = AngSS + (np.pi)/2
 
-        if Ang < 0:
-            Ang = 2 * np.pi + Ang
-        if Ang > 2 * np.pi:
-            Ang= Ang - 2 * np.pi 
+        if Ang.is_comparable == False:
+            Ang = 0
+        else:
+            if Ang>2 * np.pi:
+                Ang= Ang - 2 * np.pi 
+            elif Ang<0:
+                Ang = 2 * np.pi + Ang
 
         return Ang
 
@@ -134,12 +137,12 @@ class StartScreen(GridLayout):
         idx = []
         for i in range(len(SSAngles)):
             SSAnglelist = np.asarray(SSAnglelist)
-            cal = (np.abs(SSAnglelist - TPAngles[i][1])).argmin()
+            calc = (np.abs(SSAnglelist - TPAngles[i][1])).argmin()
             calcmax = (np.abs(SSAnglelist - TPAngles[i][1])).argmax()
-            if np.abs(SSAnglelist - TPAngles[calcmax][1])>= np.pi:
-                if  np.abs(SSAnglelist - TPAngles[calcmax][1]) - np.pi < np.abs(SSAnglelist - TPAngles[calc][1]):
+            if np.abs(SSAnglelist[calcmax] - TPAngles[i][1]) >= np.pi:
+                if  np.abs(SSAnglelist[calcmax] - TPAngles[i][1]) - np.pi < np.abs(SSAnglelist[calc] - TPAngles[i][1]):
                     calc = calcmax
-            idx.append[calc]  
+            idx.append(calc) 
         return idx
 
     def AnglestoLM(self,CurrentPoint):  
@@ -182,6 +185,7 @@ class StartScreen(GridLayout):
         if SiceAngle > np.pi:
             SiceAngle = 2* np.pi - SiceAngle
             HalfAngle = HalfAngle - np.pi 
+
         return [SiceAngle,HalfAngle,Ang1,Ang2]
 
     def AngleEtCalc(self,CP,LM1,LM2,LM3): 
@@ -196,26 +200,42 @@ class StartScreen(GridLayout):
     def  EmptyAngelCalc(self,idx1,idx2,LM):   
 
         if (4.71<LM[idx1][2] or 4.71<LM[idx1][3]) and (LM[idx1][2]<1.57 or LM[idx1][3]<1.57):
-            if LM[idx1][2]<LM[idx1][3]: #LM liegt auf X Achse
-                EMPAngle=LM[idx1][2]
-            else:
+            try:
+                if LM[idx1][2]<LM[idx1][3]: #LM liegt auf X Achse
+                    EMPAngle=LM[idx1][2]
+                else:
+                    EMPAngle=LM[idx1][3]
+            except:
                 EMPAngle=LM[idx1][3]
-        else:    
-            if LM[idx1][2]>LM[idx1][3]: #LM liegt nicht auf X Achse
+                pass
+        else:
+            try:
+                if LM[idx1][2]>LM[idx1][3]: #LM liegt nicht auf X Achse
+                    EMPAngle=LM[idx1][2]
+                else:
+                    EMPAngle=LM[idx1][3]
+            except:
                 EMPAngle=LM[idx1][2]
-            else:
-                EMPAngle=LM[idx1][3]
+                pass 
 
         if (4.71<LM[idx2][2] or 4.71<LM[idx2][3]) and (LM[idx2][2]<1.57 or LM[idx2][3]<1.57):
-            if LM[idx2][2]>LM[idx2][3]: #LM liegt auf X Achse
-                EMPAngle2=LM[idx2][2]
-            else:
+            try:
+                if LM[idx2][2]>LM[idx2][3]: #LM liegt auf X Achse
+                    EMPAngle2=LM[idx2][2]
+                else:
+                    EMPAngle2=LM[idx2][3]      
+            except:
                 EMPAngle2=LM[idx2][3]
+                pass
         else:
-            if LM[idx2][2]<LM[idx2][3]: #LM liegt nicht auf X Achse
+            try:
+                if LM[idx2][2]<LM[idx2][3]: #LM liegt nicht auf X Achse
+                    EMPAngle2=LM[idx2][2]
+                else:
+                    EMPAngle2=LM[idx2][3]
+            except:
                 EMPAngle2=LM[idx2][2]
-            else:
-                EMPAngle2=LM[idx2][3]
+                pass
         if EMPAngle2>=EMPAngle:
             SiceAngle = EMPAngle2 - EMPAngle
             HalfAngle = (EMPAngle + EMPAngle2)/2
@@ -225,7 +245,6 @@ class StartScreen(GridLayout):
             if HalfAngle > 2 * np.pi:
                 HalfAngle = HalfAngle - 2 * np.pi
         return [SiceAngle,HalfAngle,EMPAngle,EMPAngle2]
-
 
     def QuiverPlot(self,u,v):
         # Create quiver figure
