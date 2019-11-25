@@ -8,8 +8,7 @@ from kivy.app import App
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
-from kivy.uix.slider import Slider
-from kivy.uix.textinput import TextInput
+from kivy.uix.spinner import Spinner
 
 class StartScreen(GridLayout):
 
@@ -17,32 +16,27 @@ class StartScreen(GridLayout):
         super(StartScreen,self).__init__(**kwargs)
         #Interface
         self.cols = 3
+
         self.add_widget(Label(text='',font_size='20sp'))
         self.add_widget(Label(text='X-Value',font_size='20sp'))
         self.add_widget(Label(text='Y-Value',font_size='20sp'))
 
-        self.add_widget(Label(text='Target Point',font_size='20sp'))
-        self.TP_X = TextInput(multiline=False,font_size='50sp')
-        self.add_widget(self.TP_X)
-        self.TP_Y= TextInput(multiline=False,font_size='50sp')
-        self.add_widget(self.TP_Y)
-
         self.add_widget(Label(text='Landmark 1',font_size='20sp'))
-        self.LM1_X = TextInput(multiline=False,font_size='50sp')
+        self.LM1_X = Spinner(text='X',values=("-7","-6","-5","-4","-3","-2","-1","0","1","2","3","4","5","6","7"),font_size='50sp')
         self.add_widget(self.LM1_X)
-        self.LM1_Y = TextInput(multiline=False,font_size='50sp')
+        self.LM1_Y = Spinner(text='Y',values=("-7","-6","-5","-4","-3","-2","-1","0","1","2","3","4","5","6","7"),font_size='50sp')
         self.add_widget(self.LM1_Y)
 
         self.add_widget(Label(text='Landmark 2',font_size='20sp'))
-        self.LM2_X = TextInput(multiline=False,font_size='50sp')
+        self.LM2_X = Spinner(text='X',values=("-7","-6","-5","-4","-3","-2","-1","0","1","2","3","4","5","6","7"),font_size='50sp')
         self.add_widget(self.LM2_X)
-        self.LM2_Y= TextInput(multiline=False,font_size='50sp')
+        self.LM2_Y = Spinner(text='Y',values=("-7","-6","-5","-4","-3","-2","-1","0","1","2","3","4","5","6","7"),font_size='50sp')
         self.add_widget(self.LM2_Y)
 
         self.add_widget(Label(text='Landmark 3',font_size='20sp'))
-        self.LM3_X = TextInput(multiline=False,font_size='50sp')
+        self.LM3_X = Spinner(text='X',values=("-7","-6","-5","-4","-3","-2","-1","0","1","2","3","4","5","6","7"),font_size='50sp')
         self.add_widget(self.LM3_X)
-        self.LM3_Y= TextInput(multiline=False,font_size='50sp')
+        self.LM3_Y = Spinner(text='Y',values=("-7","-6","-5","-4","-3","-2","-1","0","1","2","3","4","5","6","7"),font_size='50sp')
         self.add_widget(self.LM3_Y)
 
         self.add_widget(Label(text=''))
@@ -57,7 +51,7 @@ class StartScreen(GridLayout):
         self.LM2P = Point(float(self.LM2_X.text),float(self.LM2_Y.text))
         self.LM3P = Point(float(self.LM3_X.text),float(self.LM3_Y.text))
        
-        TPP = Point(float(self.TP_X.text),float(self.TP_Y.text))  #setting up TargetPoint Points
+        TPP = Point(0,0)  #setting up TargetPoint Points
         TPAngleLM, TPAngleEmpty = self.AnglestoLM(TPP)#Angel to LM
         #setting up meshgris -7 to 7
         xx,yy  = np.meshgrid(np.arange(-7, 8, 1),np.arange(-7, 8, 1), indexing='xy')
@@ -72,8 +66,8 @@ class StartScreen(GridLayout):
                 DirectionVectorLm = self.FinalVectorCalc(SSAnglesLM,TPAngleLM,AngleLMMidx)
                 DirectionVectorEmt = self.FinalVectorCalc(SSAnglesEmpty,TPAngleEmpty,AngleEmtMidx)                
                 FAngle = (DirectionVectorLm + DirectionVectorEmt)/2
-                xz[j][i] = int((cos(FAngle) + xx[j,i])*10000)
-                yz[j][i] = int((sin(FAngle) + yy[j,i])*10000)
+                xz[j][i] = int((cos(FAngle) + xx[j,i])*-1000)
+                yz[j][i] = int((sin(FAngle) + yy[j,i])*-1000)
 
         self.QuiverPlot(xz,yz)
             
@@ -247,12 +241,13 @@ class StartScreen(GridLayout):
         ax.axis([-7, 7, -7, 7])
 
         x, y = np.meshgrid(np.arange(-7, 8, 1), np.arange(-7, 8, 1))
-        ax.quiver(x,y,gridx,gridy,angles='uv', scale_units='xy', scale=1)
+        
+        ax.quiver(x,y,gridx,gridy,angles='uv', scale_units='xy', scale=4000,minshaft = 5, headwidth=5)
 
         LMX=np.array([float(self.LM1_X.text), float(self.LM2_X.text) ,float(self.LM3_X.text)])
         LMY=np.array([float(self.LM1_Y.text),float(self.LM2_Y.text),float(self.LM3_Y.text)])
-        ax.scatter(float(self.TP_X.text),float(self.TP_Y.text),color='r') #Honeypot
-        ax.scatter(LMX,LMY,color='g') #Landmarks
+        ax.scatter(0,0,color='r',s=200)  #Honeypot
+        ax.scatter(LMX,LMY,color='g',s=150) #Landmarks
 
         ax.set_title('Honey Way')
         plt.show()
