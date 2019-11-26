@@ -1,22 +1,26 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import sys 
 
 from sympy import Eq,pi,cos,sin
 from sympy.geometry import Point, Circle, Line
 
 from kivy.app import App
+from kivy.lang import Builder
 from kivy.uix.button import Button
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.spinner import Spinner
+from kivy.uix.screenmanager import ScreenManager, Screen
 
-class StartScreen(GridLayout):
+class StartScreen(Screen,GridLayout):
 
     def __init__(self,**kwargs):
         super(StartScreen,self).__init__(**kwargs)
         #Interface
         self.cols = 3
 
+        #Start Screen discription
         self.add_widget(Label(text='',font_size='20sp'))
         self.add_widget(Label(text='X-Value',font_size='20sp'))
         self.add_widget(Label(text='Y-Value',font_size='20sp'))
@@ -44,8 +48,19 @@ class StartScreen(GridLayout):
         DrawButton.bind(on_press = self.CalculateDrawing)
         self.add_widget(DrawButton)
         self.add_widget(Label(text=''))
-    
+
+    def changer(self,*args):
+        self.manager.current = 'ErrorScreen'
+
+    def areLandmarksSet(self):
+        if (self.LM1_X.text or self.LM1_Y.text or self.LM2_X.text or self.LM2_Y.text or self.LM3_X.text or self.LM3_Y.text) == ('X' or 'Y'):
+            return self.changer()
+
+
     def CalculateDrawing(self,instance):
+
+        self.areLandmarksSet()
+
         #setting up LandMark Centers
         self.LM1P = Point(float(self.LM1_X.text),float(self.LM1_Y.text))
         self.LM2P = Point(float(self.LM2_X.text),float(self.LM2_Y.text))
@@ -70,7 +85,7 @@ class StartScreen(GridLayout):
                 yz[j][i] = int((sin(FAngle) + yy[j,i])*-1000)
 
         self.QuiverPlot(xz,yz)
-            
+
     def FinalVectorCalc(self,AngSS,AngTP,AndiD): 
         UV = self.UnitVecCalc(AngTP[0][0],AngSS[AndiD[0]][0],AngSS[AndiD[0]][1])
         UV = UV + self.UnitVecCalc(AngTP[1][0],AngSS[AndiD[1]][0],AngSS[AndiD[1]][1])
@@ -216,7 +231,7 @@ class StartScreen(GridLayout):
                 else:
                     EMPAngle=LM[idx1][3]
         if (4.71<LM[idx2][2] or 4.71<LM[idx2][3]) and (LM[idx2][2]<1.57 or LM[idx2][3]<1.57):
-                if LM[idx2][2]>LM[idx2][3]: #LM liegt auf X Achse
+                if LM[idx2][2]>LM[idx2][3]: #LM liegt auf X Ahanghse
                     EMPAngle2=LM[idx2][2]
                 else:
                     EMPAngle2=LM[idx2][3]      
@@ -252,10 +267,27 @@ class StartScreen(GridLayout):
         ax.set_title('Honey Way')
         plt.show()
 
+class ErrorScreen(Screen):
+
+    def __init__ (self,**kwargs):
+        super (ErrorScreen, self).__init__(**kwargs)
+
+        self.add_widget(Label(text='Please set all Landmarks'))
+        DrawButton = Button(text='ok' ,font_size='60sp',background_color=[1,0,0,0])
+        DrawButton.bind(on_press = self.changer())
+        self.add_widget(DrawButton)
+        self.add_widget(Label(text=''))
+
+    def changer(self):
+        sm.current = 'Start'
+        return True
+ 
 class TestApp(App):
     def build(self):
-        return StartScreen()
+        return sm
 
-
+sm = ScreenManager()
+sm.add_widget(StartScreen(name='Start'))
+sm.add_widget(ErrorScreen(name='Error'))
 TestApp().run()
 
